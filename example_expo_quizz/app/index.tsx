@@ -1,26 +1,9 @@
-import { useRouter } from "expo-router";
-import { Pressable, ScrollView, Text } from "react-native";
+import { ScrollView, Text } from "react-native";
 
 const HomePage = () => {
-  // Partie logique
-
-  const router = useRouter();
-
-  // ["/"]
-
-  // router.push("/quizz")
-
-  // ["/", "/quizz"]
-
-  // router.push("/quizz/easy")
-
-  // ["/", "/quizz","/quizz/easy"]
-
   return (
     <ScrollView>
-      <Pressable>
-        <Text>Faire un quizz</Text>
-      </Pressable>
+      <Text>Hello world</Text>
     </ScrollView>
   );
 };
