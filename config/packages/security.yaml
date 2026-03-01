@@ -1,0 +1,68 @@
+security:
+    # Algorithme de hashage des mots de passe
+    # 'auto' selectionne automatiquement le meilleur algorithme disponible
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # Provider : comment Symfony charge les utilisateurs
+    # Ici on utilise notre entite User via Doctrine
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        # Firewall pour le dev (profiler, assets)
+        dev:
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+
+        # Firewall pour le login - pas de JWT ici, c'est le point d'entree
+        login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # Firewall pour l'inscription - public, pas de JWT
+        register:
+            pattern: ^/api/register
+            stateless: true
+            security: false
+
+        # Firewall principal pour l'API
+        api:
+            pattern: ^/api
+            stateless: true
+            provider: app_user_provider
+            jwt: ~
+
+    # Regles d'acces aux routes
+    # IMPORTANT : L'ordre compte ! La premiere regle qui match est appliquee
+    access_control:
+        # Routes publiques (pas besoin d'authentification)
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+
+        # Routes DELETE : uniquement pour les admins
+        - { path: ^/api/tasks/\d+$, methods: [DELETE], roles: ROLE_ADMIN }
+        - { path: ^/api/tasks/raw/\d+$, methods: [DELETE], roles: ROLE_ADMIN }
+
+        # Toutes les autres routes API : accessibles a tous (authentifies ou non)
+        # Si vous voulez forcer l'authentification pour toute l'API,
+        # remplacez PUBLIC_ACCESS par ROLE_USER
+        - { path: ^/api, roles: PUBLIC_ACCESS }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
